@@ -2,6 +2,7 @@
 
 from datetime import date, datetime
 from enum import Enum
+
 from pydantic import BaseModel, Field
 
 
@@ -39,13 +40,13 @@ class NextAction(str, Enum):
 
 class ResearchBrief(BaseModel):
     ticker: str
-    thesis: str = Field(description="One-sentence thesis")
-    key_evidence: list[str] = Field(max_length=3, description="Top 3 pieces of evidence")
+    thesis: str
+    key_evidence: list[str] = Field(default_factory=list)
     core_driver: str = ""
     macro_sensitivity: str = ""
     valuation_sensitivity: str = ""
     catalysts: str = ""
-    invalidation: str = Field(description="Conditions that would collapse the thesis")
+    invalidation: str = ""
     next_action: NextAction = NextAction.CONTINUE_RESEARCH
 
 
@@ -63,7 +64,7 @@ class BacktestReport(BaseModel):
     max_drawdown: float | None = None
     vs_spy: str = ""
     vs_qqq: str = ""
-    conclusion: str = Field(description="放弃 / 修改 / 模拟观察 / 小仓位验证")
+    conclusion: str = ""
 
 
 class ViewpointDirection(str, Enum):
@@ -85,7 +86,7 @@ class Viewpoint(BaseModel):
     macro_support: str = ""
     core_logic: str = ""
     supporting_evidence: str = ""
-    counter_arguments: list[str] = Field(default_factory=list, min_length=2)
+    counter_arguments: list[str] = Field(default_factory=list)
     invalidation: str = ""
     valid_until: str = ""
 
