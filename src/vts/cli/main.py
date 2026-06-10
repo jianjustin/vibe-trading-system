@@ -102,6 +102,76 @@ def review(ctx, plan_id, action, notes):
     click.echo(f"Plan {plan_id} → {action}")
 
 
+@cli.group()
+def earnings():
+    """Earnings data tools: SEC filing download and earnings calendar scan."""
+
+
+@earnings.command("fetch")
+@click.argument("ticker")
+@click.option("--date", "target_date", default=None, help="财报日期 YYYY-MM-DD，下载该日期附近最近的 8-K（默认今天）")
+@click.option("--years", type=int, default=None, help="批量模式：拉取过去 N 年的 filings")
+@click.option("--since", default=None, help="批量模式：拉取该日期以来的 filings，如 2023-01-01")
+@click.option("--form", "forms", default="8-K,10-Q", help="批量模式表单类型，逗号分隔（默认：8-K,10-Q）")
+@click.option("--out", default="data/earnings_reports", help="输出根目录")
+@click.option(
+    "--user-agent", envvar="SEC_USER_AGENT", required=True,
+    help="EDGAR User-Agent，格式 '名字 邮箱'（或设置环境变量 SEC_USER_AGENT）",
+)
+def earnings_fetch(ticker, target_date, years, since, forms, out, user_agent):
+    """Download SEC earnings filings (8-K Exhibit 99.1 / 10-Q) for TICKER."""
+    from datetime import date as date_cls, timedelta
+    from pathlib import Path
+
+    from vts.loaders.sec_loader import SECDownloader
+
+    if years and since:
+        raise click.UsageError("--years 和 --since 不能同时使用")
+    if (years or since) and target_date:
+        raise click.UsageError("--date 不能与 --years / --since 同时使用")
+
+    sec = SECDownloader(user_agent=user_agent)
+    ticker = ticker.upper()
+    out_path = Path(out)
+
+    if years or since:
+        since_date = since or (date_cls.today() - timedelta(days=365 * years)).isoformat()
+        form_types = [f.strip().upper() for f in forms.split(",") if f.strip()]
+        paths = sec.download_filings_batch(ticker, form_types, since_date, out_path)
+        click.echo(f"Downloaded {len(paths)} filing(s) to {out_path}/{ticker}/")
+        for p in paths:
+            click.echo(f"  {p}")
+        if not paths:
+            raise SystemExit(1)
+        return
+
+    target = target_date or date_cls.today().isoformat()
+    path = sec.get_latest_8k_for_earnings(ticker, target, out_path)
+    if path:
+        click.echo(f"Downloaded: {path}")
+    else:
+        click.echo(f"No 8-K found for {ticker} around {target}", err=True)
+        raise SystemExit(1)
+
+
+@earnings.command("scan")
+@click.argument("tickers", nargs=-1, required=True)
+@click.option("--date", "target_date", default=None, help="目标日期 YYYY-MM-DD（默认今天）")
+@click.option("--window", default=2, help="日期容差（± 天数，默认 2）")
+def earnings_scan(tickers, target_date, window):
+    """Scan TICKERS for earnings released around the target date."""
+    from datetime import date as date_cls
+
+    from vts.loaders.earnings_calendar import scan_watchlist
+
+    target = target_date or date_cls.today().isoformat()
+    hits = scan_watchlist([t.upper() for t in tickers], target, window_days=window)
+    if hits:
+        click.echo(f"Earnings near {target}: {', '.join(hits)}")
+    else:
+        click.echo(f"No earnings found near {target}")
+
+
 @cli.command()
 @click.pass_context
 def status(ctx):
