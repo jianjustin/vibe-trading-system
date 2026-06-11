@@ -11,7 +11,7 @@
 - **输入：** ticker、规则名、信号函数（`DataFrame → Series`，1=买入 / -1=卖出 / 0=持有）、时间范围
 - **输出产物：** `artifacts/reports/{TICKER}-{rule_name}.json`
 
-> **注意：** 回测阶段需要传入 Python 信号函数，无法通过 CLI 直接表达，因此**没有对应的 CLI 子命令**，通过 Python API 运行。
+> 回测阶段需要传入 Python 信号函数，无法通过 CLI 直接表达。现已提供**预定义信号规则注册表**（`src/vts/backtest/signals.py`），可通过仪表盘或 REST API 按名称触发回测。
 
 ## 自动结论规则
 
@@ -23,7 +23,42 @@
 | 胜率 > 45% | 模拟观察 |
 | 其他 | 修改 |
 
-## 操作步骤（Python API）
+## 预定义信号规则
+
+系统内置了三种信号规则，无需编写 Python 代码即可通过仪表盘或 API 运行回测：
+
+| 规则名 | 说明 | 入场 | 出场 |
+|--------|------|------|------|
+| `ma_cross_20_60` | 20/60 日均线交叉 | 20 日均线上穿 60 日 | 20 日均线下穿 60 日 |
+| `ma_cross_50_200` | 50/200 日均线交叉（金叉/死叉） | 50 日均线上穿 200 日 | 50 日均线下穿 200 日 |
+| `breakout_20_10` | 20 日新高突破 | 收盘价突破前 20 日最高价 | 收盘价跌破前 10 日最低价 |
+
+查看完整列表：`GET /api/backtest/rules` 或在仪表盘的「Backtest 历史回测」卡片中查看下拉菜单。
+
+扩展方式：在 `src/vts/backtest/signals.py` 中添加新的 `SignalRule` 并注册到 `SIGNAL_RULES` 字典即可。
+
+## 操作步骤
+
+### 方式一：仪表盘（推荐）
+
+1. 启动 `vts serve`，打开 http://127.0.0.1:8000
+2. 在「Backtest 历史回测」卡片中填写 Ticker、选择信号规则、设置日期范围
+3. 点击「运行回测」
+4. 结果内联显示胜率、盈亏比、结论；产物同步出现在右侧「回测报告」tab
+
+### 方式二：REST API
+
+```bash
+# 运行回测
+curl -X POST http://127.0.0.1:8000/api/stages/backtest/run \
+  -H 'Content-Type: application/json' \
+  -d '{"ticker":"TSLA","rule":"ma_cross_20_60","start_date":"2022-01-01","end_date":"2026-01-01"}'
+
+# 查看结果
+curl http://127.0.0.1:8000/api/artifacts/reports/TSLA-ma_cross_20_60
+```
+
+### 方式三：Python API（自定义信号函数）
 
 在仓库根目录创建脚本或直接在 REPL 中运行（真实拉取 yfinance 数据）：
 
