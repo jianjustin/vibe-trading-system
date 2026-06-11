@@ -23,6 +23,24 @@ pip install -e ".[dev]"
 vts --help
 ```
 
+### Dashboard
+
+```bash
+# build the frontend once (requires Node >= 20)
+cd frontend && npm install && npm run build && cd ..
+
+# start the API server + dashboard at http://127.0.0.1:8000
+vts serve
+```
+
+The dashboard (Vite + React + TypeScript + Tailwind) lets you manually run every
+pipeline stage, inspect all artifacts, and approve/reject/revise execution plans.
+Backtests run against named signal rules from `src/vts/backtest/signals.py`
+(`GET /api/backtest/rules` lists them).
+
+For frontend development with hot reload: `vts serve` in one terminal,
+`cd frontend && npm run dev` in another (Vite proxies `/api` to port 8000).
+
 ## Boundaries
 
 - No broker API integration. No auto-trading.
@@ -37,5 +55,5 @@ Central orchestrator drives a DAG of five stage modules. Each stage produces typ
 
 - **Backend**: Python / FastAPI
 - **Data**: yfinance / public APIs
-- **Frontend**: Lightweight dashboard (TBD)
+- **Frontend**: Vite + React + TypeScript + Tailwind CSS (`frontend/`)
 - **Scheduling**: Built-in scheduler

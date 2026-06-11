@@ -3,8 +3,7 @@ from datetime import date
 
 from vts.stages.viewpoint import ViewpointStage
 from vts.artifacts.schemas import (
-    MacroSnapshot, MarketStance, ResearchBrief, NextAction,
-    BacktestReport, Viewpoint, ViewpointDirection, Confidence,
+    MacroSnapshot, MarketStance, ResearchBrief, BacktestReport, Viewpoint, ViewpointDirection, Confidence,
 )
 
 

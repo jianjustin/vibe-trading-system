@@ -1,5 +1,4 @@
 import pytest
-from datetime import date
 
 from vts.stages.plan import PlanStage
 from vts.artifacts.schemas import (

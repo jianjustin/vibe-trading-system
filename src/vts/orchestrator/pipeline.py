@@ -1,8 +1,6 @@
 """Sequential pipeline orchestrator for the five-stage investment pipeline."""
 
-from typing import Callable
 
-import pandas as pd
 
 from vts.artifacts.store import ArtifactStore
 from vts.loaders.yfinance_loader import YFinanceLoader

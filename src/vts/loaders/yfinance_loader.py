@@ -22,11 +22,10 @@ class YFinanceLoader:
         data = yf.download(ticker, start=start_date, end=end_date, progress=False)
         if data.empty:
             raise ValueError(f"No data for {ticker} between {start_date} and {end_date}")
-        col_map = {}
-        for c in data.columns:
-            name = c[0].lower() if isinstance(c, tuple) else c.lower()
-            col_map[c] = name
-        data = data.rename(columns=col_map)
+        # pandas rename() can't flatten MultiIndex columns via tuple keys; assign directly
+        data.columns = [
+            c[0].lower() if isinstance(c, tuple) else c.lower() for c in data.columns
+        ]
         return data[["open", "high", "low", "close", "volume"]]
 
     def fetch_macro_indicators(self) -> dict:

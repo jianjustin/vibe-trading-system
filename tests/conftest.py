@@ -1,12 +1,11 @@
 import pytest
-from pathlib import Path
 from datetime import date
 
 from vts.artifacts.store import ArtifactStore
 from vts.artifacts.schemas import (
     MacroSnapshot, MarketStance, ResearchBrief, NextAction,
     BacktestReport, Viewpoint, ViewpointDirection, Confidence,
-    ExecutionPlan, ApprovalStatus,
+    ExecutionPlan,
 )
 
 

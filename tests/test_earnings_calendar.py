@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
-import pytest
 
 from vts.loaders.earnings_calendar import (
     check_earnings_on_date,

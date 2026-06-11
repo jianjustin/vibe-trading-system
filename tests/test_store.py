@@ -1,4 +1,3 @@
-from vts.artifacts.store import ArtifactStore
 from vts.artifacts.schemas import MacroSnapshot, MarketStance
 from datetime import date
 

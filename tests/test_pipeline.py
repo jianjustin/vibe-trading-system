@@ -4,7 +4,7 @@ import numpy as np
 from unittest.mock import MagicMock
 
 from vts.orchestrator.pipeline import Pipeline
-from vts.artifacts.schemas import MacroSnapshot, ResearchBrief, BacktestReport, Viewpoint, ExecutionPlan
+from vts.artifacts.schemas import MacroSnapshot, ResearchBrief, Viewpoint
 
 
 @pytest.fixture

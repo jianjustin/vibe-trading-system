@@ -1,11 +1,10 @@
 """CLI entry point for vibe-trading-system."""
 
-import json
 
 import click
 
 from vts.artifacts.schemas import (
-    BacktestReport, ExecutionPlan, MacroSnapshot, ResearchBrief, Viewpoint,
+    ExecutionPlan, MacroSnapshot, Viewpoint,
 )
 from vts.artifacts.store import ArtifactStore
 from vts.orchestrator.pipeline import Pipeline
@@ -170,6 +169,23 @@ def earnings_scan(tickers, target_date, window):
         click.echo(f"Earnings near {target}: {', '.join(hits)}")
     else:
         click.echo(f"No earnings found near {target}")
+
+
+@cli.command()
+@click.option("--host", default="127.0.0.1", help="Bind host")
+@click.option("--port", default=8000, type=int, help="Bind port")
+@click.option("--frontend-dist", default="frontend/dist", help="Built dashboard directory")
+@click.pass_context
+def serve(ctx, host, port, frontend_dist):
+    """Start the dashboard API server (serves frontend/dist if built)."""
+    import uvicorn
+
+    from vts.api.server import create_app
+    from vts.artifacts.store import ArtifactStore
+
+    store = ArtifactStore(base_dir=ctx.obj["artifacts_dir"])
+    app = create_app(store=store, frontend_dist=frontend_dist)
+    uvicorn.run(app, host=host, port=port)
 
 
 @cli.command()

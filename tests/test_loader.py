@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-from vts.loaders.yfinance_loader import YFinanceLoader, MACRO_TICKERS
+from vts.loaders.yfinance_loader import YFinanceLoader
 
 
 @pytest.fixture
@@ -67,3 +67,12 @@ def test_fetch_macro_indicators(loader, mock_ohlcv):
             assert key in indicators
             assert indicators[key] is not None
             assert "latest" in indicators[key]
+
+
+def test_fetch_ohlcv_normalizes_multiindex_columns(loader, mock_ohlcv):
+    # yfinance >= 1.x returns MultiIndex columns ('Close', 'TSLA') even for one ticker
+    multi = mock_ohlcv.copy()
+    multi.columns = pd.MultiIndex.from_product([mock_ohlcv.columns, ["TSLA"]])
+    with patch("vts.loaders.yfinance_loader.yf.download", return_value=multi):
+        df = loader.fetch_ohlcv("TSLA", "2026-01-01", "2026-12-01")
+        assert list(df.columns) == ["open", "high", "low", "close", "volume"]
